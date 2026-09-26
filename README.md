@@ -79,26 +79,41 @@ CHAT__NICKNAME=["猫猫", "小助手"]
 
 ---
 
-## 项目架构
+## 项目架构与目录结构
+
+> [!NOTE] 💡 关于目录命名说明（为什么会有两个名字相似的目录？）
+> - **外层目录 `nonebot-plugin-ayasanko-chat/`（中划线 `-`）**：这是 **Git 仓库根目录** 与 **PyPI 安装包名**（例如执行 `pip install nonebot-plugin-ayasanko-chat`）。这里存放的是项目全局文档、构建元数据、许可证及自动化测试套件。
+> - **内层目录 `nonebot_plugin_ayasanko_chat/`（下划线 `_`）**：这是实际运行的 **Python 核心源码包**。因为 Python 语法规则禁止模块导入名称中含有减号 `-`（会被解释器视为减号运算符触发 `SyntaxError`），因此按照 Python/NoneBot 标准规范，实际业务包必须使用下划线（供 `import nonebot_plugin_ayasanko_chat` 调用）。两者并非重复目录，而是符合 PEP 423 / PEP 517 标准规范的工程分层设计。
 
 ```text
-nonebot_plugin_ayasanko_chat/
-├── __init__.py           # 插件入口、事件响应器与公开 API 导出
-├── config.py             # 基于 Pydantic v2 的类型化配置定义
-├── client.py             # 全局 HTTP 连接池生命周期管理
-├── session.py            # 会话数据模型与生命周期辅助
-├── limiter.py            # 滑动窗口速率限制器
-├── engine.py             # 调度引擎：多模态组装、流式处理、退避重试与思考链解析
-├── processor.py          # 历史向后兼容垫片层
-├── storage/              # 持久化存储后端抽象
-│   ├── base.py           # 存储基类 BaseStorageBackend
-│   ├── memory.py         # 内存 LRU + TTL 后端
-│   └── sqlite.py         # 高并发 WAL SQLite 持久化后端
-└── adapters/             # 适配器策略层
-    ├── base.py           # 适配器抽象基类
-    ├── onebot.py         # OneBot V11 协议实现（含图片与撤回）
-    ├── qq.py             # QQ 官方开放平台实现（含图片）
-    └── discord.py        # Discord 平台实现（含附件图片识别）
+nonebot-plugin-ayasanko-chat/          # 【外层】Git 仓库根目录 / PyPI 分发包名（使用中划线 - ）
+├── pyproject.toml                     # 项目依赖与 PEP 517/621 构建元数据
+├── README.md                          # 中文说明文档
+├── README_EN.md                       # 英文说明文档
+├── LICENSE                            # MIT 开源协议
+├── data/                              # 本地运行时数据（如 SQLite 数据库，已加入 .gitignore）
+├── dist/                              # 打包构建产物目录（.whl 与 .tar.gz）
+├── tests/                             # 自动化测试与实机模拟器
+│   ├── conftest.py                    # pytest 测试桩配置
+│   ├── verify_standalone.py           # 独立交互式终端模拟器 (CLI，不依赖 NoneBot 即可直接对话测试)
+│   └── test_*.py                      # 核心单元测试集
+└── nonebot_plugin_ayasanko_chat/      # 【内层】实际 Python 代码模块（使用下划线 _，供 import 调用）
+    ├── __init__.py                    # 插件入口、事件响应器与公开 API 导出
+    ├── config.py                      # 基于 Pydantic v2 的类型化配置定义
+    ├── client.py                      # 全局 HTTP 连接池生命周期管理
+    ├── session.py                     # 会话数据模型与生命周期辅助
+    ├── limiter.py                     # 滑动窗口速率限制器
+    ├── engine.py                      # 调度引擎：多模态组装、流式处理、退避重试与思考链解析
+    ├── processor.py                   # 历史向后兼容垫片层
+    ├── storage/                       # 持久化存储后端抽象
+    │   ├── base.py                    # 存储基类 BaseStorageBackend
+    │   ├── memory.py                  # 内存 LRU + TTL 后端
+    │   └── sqlite.py                  # 高并发 WAL SQLite 持久化后端
+    └── adapters/                      # 适配器策略层
+        ├── base.py                    # 适配器抽象基类
+        ├── onebot.py                  # OneBot V11 协议实现（含图片与撤回）
+        ├── qq.py                      # QQ 官方开放平台实现（含图片）
+        └── discord.py                 # Discord 平台实现（含附件图片识别）
 ```
 
 ---

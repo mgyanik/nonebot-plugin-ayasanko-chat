@@ -79,26 +79,41 @@ CHAT__NICKNAME=["Cat", "Assistant"]
 
 ---
 
-## Project Structure
+## Project Structure & Architecture
+
+> [!NOTE] 💡 Directory Naming Clarification (Why are there two similar folder names?)
+> - **Outer Directory `nonebot-plugin-ayasanko-chat/` (with hyphens `-`)**: The **Git repository root** and the **PyPI package distribution name** (e.g., used when running `pip install nonebot-plugin-ayasanko-chat`). This level houses project documentation, build metadata, licensing, and test suites.
+> - **Inner Directory `nonebot_plugin_ayasanko_chat/` (with underscores `_`)**: The **actual Python source code package**. Python syntax prohibits hyphens in module import names (as they are parsed as subtraction operators raising `SyntaxError`). Per PEP 423 / PEP 517 and NoneBot packaging standards, the importable module must use underscores (e.g. `import nonebot_plugin_ayasanko_chat`). These are not duplicate folders, but standard engineering layers.
 
 ```text
-nonebot_plugin_ayasanko_chat/
-├── __init__.py           # Plugin entry, event matcher, and public exports
-├── config.py             # Pydantic v2 typed configuration model
-├── client.py             # Global HTTP connection pool lifecycle management
-├── session.py            # Session data models and helper utilities
-├── limiter.py            # Sliding-window rate limiter
-├── engine.py             # Dispatch engine: multimodal, streaming, retries, and reasoning parser
-├── processor.py          # Backward-compatibility shim for legacy callers
-├── storage/              # Persistent storage backends
-│   ├── base.py           # BaseStorageBackend abstract interface
-│   ├── memory.py         # In-memory LRU + TTL backend
-│   └── sqlite.py         # High-concurrency WAL SQLite persistence backend
-└── adapters/             # Protocol adapter strategy layer
-    ├── base.py           # Abstract adapter base class
-    ├── onebot.py         # OneBot V11 implementation (with image & revoke support)
-    ├── qq.py             # QQ official implementation (with image support)
-    └── discord.py        # Discord implementation (with attachments support)
+nonebot-plugin-ayasanko-chat/          # [Outer] Repository root / PyPI package distribution name (hyphens -)
+├── pyproject.toml                     # Project dependencies & PEP 517/621 build configuration
+├── README.md                          # Chinese documentation
+├── README_EN.md                       # English documentation
+├── LICENSE                            # MIT License
+├── data/                              # Local runtime data (e.g. SQLite DB, git-ignored)
+├── dist/                              # Built distribution artifacts (.whl and .tar.gz)
+├── tests/                             # Automated testing & standalone CLI
+│   ├── conftest.py                    # Mock fixtures for standalone test environments
+│   ├── verify_standalone.py           # Standalone interactive CLI terminal simulator
+│   └── test_*.py                      # pytest test suite
+└── nonebot_plugin_ayasanko_chat/      # [Inner] Python source package (underscores _, imported in code)
+    ├── __init__.py                    # Plugin entry, event matcher, and public exports
+    ├── config.py                      # Pydantic v2 typed configuration model
+    ├── client.py                      # Global HTTP connection pool lifecycle management
+    ├── session.py                     # Session data models and helper utilities
+    ├── limiter.py                     # Sliding-window rate limiter
+    ├── engine.py                      # Dispatch engine: multimodal, streaming, retries, and reasoning parser
+    ├── processor.py                   # Backward-compatibility shim for legacy callers
+    ├── storage/                       # Persistent storage backends
+    │   ├── base.py                    # BaseStorageBackend abstract interface
+    │   ├── memory.py                  # In-memory LRU + TTL backend
+    │   └── sqlite.py                  # High-concurrency WAL SQLite persistence backend
+    └── adapters/                      # Protocol adapter strategy layer
+        ├── base.py                    # Abstract adapter base class
+        ├── onebot.py                  # OneBot V11 implementation (with image & revoke support)
+        ├── qq.py                      # QQ official implementation (with image support)
+        └── discord.py                 # Discord implementation (with attachments support)
 ```
 
 ---
