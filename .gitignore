@@ -10,3 +10,5 @@ build/
 *.db-wal
 *.db-shm
 data/
+.env
+.env.*

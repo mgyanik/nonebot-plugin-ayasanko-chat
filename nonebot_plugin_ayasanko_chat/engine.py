@@ -150,6 +150,46 @@ class ChatEngine:
             del self.user_queues[sid]
         return len(idle_keys)
 
+    async def _prepare_image_urls(self, client: httpx.AsyncClient, images: list[str]) -> list[str]:
+        """将图片路径或 URL 规范化为 Base64 Data URL，确保大模型无论是否具备公网爬图权限均能识别"""
+        if not images:
+            return []
+        import base64
+        import mimetypes
+        import os
+
+        prepared: list[str] = []
+        for img in images:
+            if img.startswith("data:image/"):
+                prepared.append(img)
+                continue
+            if os.path.isfile(img):
+                mime, _ = mimetypes.guess_type(img)
+                mime = mime or "image/png"
+                try:
+                    with open(img, "rb") as f:
+                        b64 = base64.b64encode(f.read()).decode("utf-8")
+                    prepared.append(f"data:{mime};base64,{b64}")
+                    continue
+                except Exception as e:
+                    logger.warning(f"Failed to read local image {img}: {e}")
+                    prepared.append(img)
+                    continue
+            if img.startswith("http://") or img.startswith("https://"):
+                try:
+                    resp = await client.get(img, timeout=15.0)
+                    if resp.status_code == 200:
+                        content_type = resp.headers.get("content-type", "").split(";")[0].strip()
+                        if not content_type.startswith("image/"):
+                            content_type = "image/png"
+                        b64 = base64.b64encode(resp.content).decode("utf-8")
+                        prepared.append(f"data:{content_type};base64,{b64}")
+                        continue
+                except Exception as e:
+                    logger.warning(f"Failed to download image {img} for base64: {e}")
+            prepared.append(img)
+        return prepared
+
     def _format_user_content(self, message: str, images: list[str]) -> Any:
         """构造 OpenAI 兼容的多模态内容结构"""
         if not images:
@@ -234,7 +274,8 @@ class ChatEngine:
             "Content-Type": "application/json",
         }
 
-        user_content = self._format_user_content(message, images)
+        prepared_images = await self._prepare_image_urls(client, images)
+        user_content = self._format_user_content(message, prepared_images)
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": self.config.system_prompt}
         ]
@@ -308,7 +349,8 @@ class ChatEngine:
             "Content-Type": "application/json",
         }
 
-        user_content = self._format_user_content(message, images)
+        prepared_images = await self._prepare_image_urls(client, images)
+        user_content = self._format_user_content(message, prepared_images)
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": self.config.system_prompt}
         ]
