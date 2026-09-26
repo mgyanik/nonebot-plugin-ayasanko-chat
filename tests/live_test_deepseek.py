@@ -1,5 +1,6 @@
 # tests/live_test_deepseek.py
 import asyncio
+import os
 from nonebot_plugin_ayasanko_chat.config import ChatConfig
 from nonebot_plugin_ayasanko_chat.engine import ChatEngine
 
