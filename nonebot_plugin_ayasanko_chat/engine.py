@@ -274,6 +274,32 @@ class ChatEngine:
 
         return final_content
 
+    async def _clean_history(self, client: httpx.AsyncClient, history: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+        """清洗历史记录，确保其中的图片 URL 均符合 API 标准（修复本地路径未转 Base64 隐患）"""
+        if not history:
+            return []
+        cleaned: list[dict[str, Any]] = []
+        for item in history:
+            c = item.get("content")
+            if isinstance(c, list):
+                clean_segs: list[dict[str, Any]] = []
+                for seg in c:
+                    if isinstance(seg, dict) and seg.get("type") == "image_url":
+                        img_info = seg.get("image_url", {})
+                        url = img_info.get("url", "")
+                        if not (url.startswith("http://") or url.startswith("https://") or url.startswith("data:image/")):
+                            prep = await self._prepare_image_urls(client, [url])
+                            if prep and prep[0] != url:
+                                clean_segs.append({"type": "image_url", "image_url": {"url": prep[0]}})
+                            else:
+                                clean_segs.append({"type": "text", "text": "[图片]"})
+                            continue
+                    clean_segs.append(seg)
+                cleaned.append({"role": item["role"], "content": clean_segs})
+            else:
+                cleaned.append(item)
+        return cleaned
+
     async def _call_api_once(
         self,
         message: str,
@@ -293,7 +319,8 @@ class ChatEngine:
             {"role": "system", "content": self.config.system_prompt}
         ]
         if history:
-            messages.extend(history)
+            cleaned_hist = await self._clean_history(client, history)
+            messages.extend(cleaned_hist)
         messages.append({"role": "user", "content": user_content})
 
         payload: dict[str, Any] = {
@@ -368,7 +395,8 @@ class ChatEngine:
             {"role": "system", "content": self.config.system_prompt}
         ]
         if history:
-            messages.extend(history)
+            cleaned_hist = await self._clean_history(client, history)
+            messages.extend(cleaned_hist)
         messages.append({"role": "user", "content": user_content})
 
         payload: dict[str, Any] = {
@@ -471,8 +499,12 @@ class ChatEngine:
 
         try:
             result = await task.result
-            # 存储对话轮次（若含图片则存储多模态结构）
-            stored_user_msg = self._format_user_content(message, actual_images)
+            # 存储对话轮次：对历史消息采用轻量占位，避免 SQLite 膨胀及重放历史时出现非法文件路径
+            if actual_images:
+                stored_user_msg = f"[图片] {message}" if message else "[图片]"
+            else:
+                stored_user_msg = message
+
             self.session_manager.add_turn(
                 session_id=actual_session_id,
                 user_msg=stored_user_msg,
