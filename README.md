@@ -1,6 +1,16 @@
 # nonebot-plugin-ayasanko-chat
 
+<div align="center">
+
+[![Release](https://img.shields.io/badge/Release-v0.3.0-brightgreen.svg)](https://github.com/mgyanik/nonebot-plugin-ayasanko-chat/releases)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![NoneBot](https://img.shields.io/badge/NoneBot-2.3%2B-ea5252.svg)](https://nonebot.dev/)
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-e92063.svg?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
+
 [English](README_EN.md) | [简体中文](README.md)
+
+</div>
 
 NoneBot2 AI 对话插件，支持 **OneBot V11**、**QQ 官方开放平台** 与 **Discord** 多平台适配器，内建 **DeepSeek 思考链**、**多模态视觉图文** 与 **SQLite 会话持久化**。
 

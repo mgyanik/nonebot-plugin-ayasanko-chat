@@ -1,6 +1,16 @@
 # nonebot-plugin-ayasanko-chat
 
+<div align="center">
+
+[![Release](https://img.shields.io/badge/Release-v0.3.0-brightgreen.svg)](https://github.com/mgyanik/nonebot-plugin-ayasanko-chat/releases)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![NoneBot](https://img.shields.io/badge/NoneBot-2.3%2B-ea5252.svg)](https://nonebot.dev/)
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-e92063.svg?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
+
 [English](README_EN.md) | [简体中文](README.md)
+
+</div>
 
 NoneBot2 AI chat plugin supporting **OneBot V11**, **QQ Official**, and **Discord** multi-platform adapters, featuring **DeepSeek Reasoning Thinking Extraction**, **Multimodal Vision Inputs**, and **SQLite Session Persistence**.
 
