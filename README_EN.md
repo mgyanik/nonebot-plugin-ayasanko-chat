@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![PyPI](https://img.shields.io/pypi/v/nonebot-plugin-ayasanko-chat.svg)](https://pypi.org/project/nonebot-plugin-ayasanko-chat/)
 [![Release](https://img.shields.io/badge/Release-v0.3.0-brightgreen.svg)](https://github.com/mgyanik/nonebot-plugin-ayasanko-chat/releases)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![NoneBot](https://img.shields.io/badge/NoneBot-2.3%2B-ea5252.svg)](https://nonebot.dev/)
