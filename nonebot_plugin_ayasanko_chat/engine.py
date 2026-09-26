@@ -166,15 +166,28 @@ class ChatEngine:
             if os.path.isfile(img):
                 mime, _ = mimetypes.guess_type(img)
                 mime = mime or "image/png"
+                raw_bytes: bytes | None = None
                 try:
                     with open(img, "rb") as f:
-                        b64 = base64.b64encode(f.read()).decode("utf-8")
-                    prepared.append(f"data:{mime};base64,{b64}")
-                    continue
+                        raw_bytes = f.read()
+                except PermissionError:
+                    # 在 Android/Termux 下若被其他应用 (如 QQ 0770) 限制读取，尝试通过 su 读取
+                    try:
+                        import subprocess
+                        proc = subprocess.run(["su", "-c", f"cat '{img}'"], capture_output=True, timeout=5)
+                        if proc.returncode == 0 and proc.stdout:
+                            raw_bytes = proc.stdout
+                    except Exception:
+                        pass
                 except Exception as e:
                     logger.warning(f"Failed to read local image {img}: {e}")
-                    prepared.append(img)
+
+                if raw_bytes is not None:
+                    b64 = base64.b64encode(raw_bytes).decode("utf-8")
+                    prepared.append(f"data:{mime};base64,{b64}")
                     continue
+                else:
+                    raise PermissionError(f"无法读取本地图片文件 '{img}'：权限不足。在 Android 上若为 QQ/微信等外部应用私有目录图片，请检查文件读取权限。")
             if img.startswith("http://") or img.startswith("https://"):
                 try:
                     resp = await client.get(img, timeout=15.0)

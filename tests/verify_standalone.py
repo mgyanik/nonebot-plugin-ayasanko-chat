@@ -89,6 +89,7 @@ async def run_interactive_cli():
         api_key=api_key,
         api_base=api_base,
         model=model,
+        max_tokens=4000,
         storage_backend="sqlite",
         sqlite_path=db_path,
         stream=False,
