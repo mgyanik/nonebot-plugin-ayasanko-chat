@@ -18,7 +18,7 @@ from .processor import ChatProcessor
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-ayasanko-chat",
-    description="工业级高性能 AI 对话插件，支持 OneBot V11、QQ 官方、Discord 多平台与 DeepSeek 思考链",
+    description="NoneBot2 AI 对话插件，支持 OneBot V11、QQ 官方、Discord 多平台与 DeepSeek 思考链",
     usage="被 @ 或提及机器人昵称时自动触发智能对话",
     type="application",
     homepage="https://github.com/mgyanik/nonebot-plugin-ayasanko-chat",

@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [简体中文](README.md)
 
-Industrial-grade, all-in-one NoneBot2 AI chat plugin supporting **OneBot V11**, **QQ Official**, and **Discord** multi-platform adapters, featuring **DeepSeek Reasoning Thinking Extraction**, **Multimodal Vision Inputs**, and **SQLite Crash-Resilient Persistence**.
+NoneBot2 AI chat plugin supporting **OneBot V11**, **QQ Official**, and **Discord** multi-platform adapters, featuring **DeepSeek Reasoning Thinking Extraction**, **Multimodal Vision Inputs**, and **SQLite Session Persistence**.
 
 ---
 

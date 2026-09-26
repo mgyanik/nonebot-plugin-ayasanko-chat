@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [简体中文](README.md)
 
-工业级全能 NoneBot2 AI 对话插件，支持 **OneBot V11**、**QQ 官方开放平台** 与 **Discord** 多平台适配器，内建 **DeepSeek 思考链**、**多模态视觉图文** 与 **SQLite 崩溃无损持久化**。
+NoneBot2 AI 对话插件，支持 **OneBot V11**、**QQ 官方开放平台** 与 **Discord** 多平台适配器，内建 **DeepSeek 思考链**、**多模态视觉图文** 与 **SQLite 会话持久化**。
 
 ---
 
