@@ -23,6 +23,7 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     homepage="https://github.com/mgyanik/nonebot-plugin-ayasanko-chat",
     config=ChatConfig,
+    supported_adapters={"~onebot.v11", "~qq", "~discord"},
 )
 
 # ---------- 插件配置与引擎初始化 ----------
