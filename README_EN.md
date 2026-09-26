@@ -81,7 +81,9 @@ CHAT__NICKNAME=["Cat", "Assistant"]
 
 ## Project Structure & Architecture
 
-> [!NOTE] 💡 Directory Naming Clarification (Why are there two similar folder names?)
+> [!NOTE]
+> **💡 Directory Naming Clarification (Why are there two similar folder names?)**
+>
 > - **Outer Directory `nonebot-plugin-ayasanko-chat/` (with hyphens `-`)**: The **Git repository root** and the **PyPI package distribution name** (e.g., used when running `pip install nonebot-plugin-ayasanko-chat`). This level houses project documentation, build metadata, licensing, and test suites.
 > - **Inner Directory `nonebot_plugin_ayasanko_chat/` (with underscores `_`)**: The **actual Python source code package**. Python syntax prohibits hyphens in module import names (as they are parsed as subtraction operators raising `SyntaxError`). Per PEP 423 / PEP 517 and NoneBot packaging standards, the importable module must use underscores (e.g. `import nonebot_plugin_ayasanko_chat`). These are not duplicate folders, but standard engineering layers.
 

@@ -81,7 +81,9 @@ CHAT__NICKNAME=["猫猫", "小助手"]
 
 ## 项目架构与目录结构
 
-> [!NOTE] 💡 关于目录命名说明（为什么会有两个名字相似的目录？）
+> [!NOTE]
+> **💡 目录命名说明（为什么会有两个名字相似的目录？）**
+>
 > - **外层目录 `nonebot-plugin-ayasanko-chat/`（中划线 `-`）**：这是 **Git 仓库根目录** 与 **PyPI 安装包名**（例如执行 `pip install nonebot-plugin-ayasanko-chat`）。这里存放的是项目全局文档、构建元数据、许可证及自动化测试套件。
 > - **内层目录 `nonebot_plugin_ayasanko_chat/`（下划线 `_`）**：这是实际运行的 **Python 核心源码包**。因为 Python 语法规则禁止模块导入名称中含有减号 `-`（会被解释器视为减号运算符触发 `SyntaxError`），因此按照 Python/NoneBot 标准规范，实际业务包必须使用下划线（供 `import nonebot_plugin_ayasanko_chat` 调用）。两者并非重复目录，而是符合 PEP 423 / PEP 517 标准规范的工程分层设计。
 
