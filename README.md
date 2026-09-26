@@ -2,54 +2,114 @@
 
 [English](README_EN.md) | [简体中文](README.md)
 
-基于 NoneBot2 的 AI 智能聊天插件，支持 OneBot V11 与 QQ 官方适配器。
+工业级全能 NoneBot2 AI 对话插件，支持 **OneBot V11**、**QQ 官方开放平台** 与 **Discord** 多平台适配器，内建 **DeepSeek 思考链**、**多模态视觉图文** 与 **SQLite 崩溃无损持久化**。
 
 ---
 
-## 特性
+## 核心特性
 
-- **多适配器兼容**：支持 OneBot V11 及 QQ 官方适配器。
-- **并发与队列控制**：内置用户级任务队列与请求并发信号量控制。
-- **上下文管理**：支持会话记忆、角色设定 Prompt 与指令重置（`/clear`）。
-- **配置化**：通过环境变量灵活配置大模型 API 地址、Key、模型名称等。
+- **多平台适配器矩阵**：统一抽象策略层，无缝支持 **OneBot V11**、**QQ 官方开放平台** 与 **Discord**，统一处理用户 ID、群组/公会识别、@提及与昵称清洗。
+- **多模态视觉支持 (Vision)**：自动检测并提取消息中的图片 URL（QQ/OneBot/Discord），组装为 OpenAI 标准多模态格式，无缝支持 GPT-4o、GLM-4V 等视觉模型。
+- **DeepSeek 思考链与流式推理 (R1)**：原生解析 DeepSeek-R1 / `deepseek-reasoner` 的 `reasoning_content` 及 `<think>` 标签，支持打字机 SSE 流式传输与思考过程独立折叠展示。
+- **持久化存储双引擎 (Memory / SQLite)**：
+  - `memory`：基于 **LRU 淘汰 + TTL 自动失效机制**，常数阶 $O(1)$ 内存开销，杜绝高频群聊环境下的内存无界膨胀。
+  - `sqlite`：基于 WAL 高并发模式的 SQLite 数据库存储，服务重启、更新代码或崩溃恢复后**对话历史永不丢失**。
+- **群/私聊会话隔离与共享**：支持配置 `individual`（群内个人独立上下文）与 `shared`（群内全员共享连续记忆）双模式，彻底解决不同群聊与私聊串台问题。
+- **全局 HTTP 连接池复用**：内建共享 `httpx.AsyncClient` 长连接池与驱动生命周期管理，降低 30%~50% 请求握手延迟。
+- **自适应指数退避重试 (Exponential Backoff with Jitter)**：针对上游大模型偶发 429、502/503/504 网络抖动，自动按随机抖动时间退避重试，保障请求成功率。
+- **滑动窗口速率限制 (Rate Limiting)**：内置内存滑动窗口限流器，有效防止用户恶意高频刷屏消耗 API 额度。
+- **安全并发调度引擎**：修复 `PriorityQueue` 协程安全排序，防止高并发下因 Future 比较引发崩溃；支持单用户/会话任务队列串行化。
+- **群聊黑白名单与长文本保护**：支持群白名单、黑名单过滤；单条长回复超限自动智能断句分段下发。
+- **外部生态互通**：对外导出标准会话控制函数 `get_context_count()` 与 `clear_context()`，无缝联动管理类插件。
 
 ---
 
-## 安装
+## 安装方式
 
 ```bash
-# 使用 nb-cli
+# 基础安装
 nb plugin install nonebot-plugin-ayasanko-chat
-
-# 使用 pip
+# 或
 pip install nonebot-plugin-ayasanko-chat
+
+# 安装特定平台适配器扩展
+pip install "nonebot-plugin-ayasanko-chat[onebot]"     # OneBot V11
+pip install "nonebot-plugin-ayasanko-chat[qq]"         # QQ 官方
+pip install "nonebot-plugin-ayasanko-chat[discord]"    # Discord
+pip install "nonebot-plugin-ayasanko-chat[all]"        # 全平台支持
 ```
 
 ---
 
-## 配置项
+## 快速配置
 
-在 NoneBot2 项目的 `.env` 文件中添加以下配置项：
+在 NoneBot2 项目的 `.env` 或 `.env.prod` 文件中添加配置项（完整参数见 [.env.example](.env.example)）：
 
 ```env
-# 聊天插件配置
-CHAT__API_KEY=<your_api_key>
-CHAT__API_BASE=https://open.bigmodel.cn/api/paas/v4
-CHAT__MODEL=glm-4.5-air
-CHAT__MAX_TOKENS=1000
+# 核心大模型配置 (支持智谱、DeepSeek、OpenAI、Ollama等)
+CHAT__API_KEY=your_api_key_here
+CHAT__API_BASE=https://api.deepseek.com
+CHAT__MODEL=deepseek-reasoner
+CHAT__MAX_TOKENS=2000
 CHAT__TEMPERATURE=1.0
-CHAT__TIMEOUT=30
-SYSTEM_PROMPT=你是一位有用的AI
-CHAT__NICKNAME=["亚托莉", "猫猫"]
+CHAT__TIMEOUT=60
+
+# 思考链与流式输出
+CHAT__STREAM=false                    # 是否启用 SSE 流式接收
+CHAT__SHOW_THINKING=true              # 是否在回复中保留并排版展示思考链 (Reasoning)
+
+# 存储后端
+CHAT__STORAGE_BACKEND=sqlite          # "memory"(内存LRU) 或 "sqlite"(持久化)
+CHAT__SQLITE_PATH=data/ayasanko_chat.db # SQLite 文件存放路径
+
+# 会话与隔离模式
+CHAT__GROUP_SESSION_MODE=individual   # "individual"(群内单人隔离) 或 "shared"(群内共享记忆)
+CHAT__SESSION_TTL=1800                # 会话闲置过期时间（秒，默认 30 分钟）
+CHAT__MAX_SESSIONS=500                # 内存活跃会话上限（超出后按 LRU 自动淘汰）
+
+# 高可用与限流
+CHAT__MAX_RETRIES=2                   # 遇到网络抖动/429/5xx时的最大重试次数
+CHAT__RATE_LIMIT_REQUESTS=10          # 周期内最大请求数（0 表示关闭限流）
+CHAT__RATE_LIMIT_PERIOD=60            # 速率限制周期时长（秒）
+
+# 角色与触发设定
+CHAT__SYSTEM_PROMPT=你是一位聪明、可爱且乐于助人的 AI 助手。
+CHAT__NICKNAME=["猫猫", "小助手"]
 ```
 
 ---
 
-## 基础指令
+## 项目架构
 
-| 指令 | 说明 |
-| :--- | :--- |
-| `/clear` | 清理用户当前的对话上下文与历史记录 |
+```text
+nonebot_plugin_ayasanko_chat/
+├── __init__.py           # 插件入口、事件响应器与公开 API 导出
+├── config.py             # 基于 Pydantic v2 的类型化配置定义
+├── client.py             # 全局 HTTP 连接池生命周期管理
+├── session.py            # 会话数据模型与生命周期辅助
+├── limiter.py            # 滑动窗口速率限制器
+├── engine.py             # 调度引擎：多模态组装、流式处理、退避重试与思考链解析
+├── processor.py          # 历史向后兼容垫片层
+├── storage/              # 持久化存储后端抽象
+│   ├── base.py           # 存储基类 BaseStorageBackend
+│   ├── memory.py         # 内存 LRU + TTL 后端
+│   └── sqlite.py         # 高并发 WAL SQLite 持久化后端
+└── adapters/             # 适配器策略层
+    ├── base.py           # 适配器抽象基类
+    ├── onebot.py         # OneBot V11 协议实现（含图片与撤回）
+    ├── qq.py             # QQ 官方开放平台实现（含图片）
+    └── discord.py        # Discord 平台实现（含附件图片识别）
+```
+
+---
+
+## 单元测试
+
+项目内置完整的 pytest 测试套件：
+
+```bash
+poetry run pytest -v
+```
 
 ---
 

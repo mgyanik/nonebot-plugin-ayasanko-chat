@@ -20,32 +20,62 @@ class ChatConfig(BaseModel):
     max_tokens: int = Field(default=1000)
     temperature: float = Field(default=1.0)
     timeout: int = Field(default=30)
-    max_concurrent: int = Field(default=5) # 最大并发请求数
-    max_history: int = Field(default=10) # 最大上下文数量
-    storage_backend: str = Field(default="memory") # 存储上下文的方法，"memory"则表示使用内存存储
+    max_concurrent: int = Field(default=5)              # 最大并发请求数
+    max_history: int = Field(default=10)                 # 最大保留上下文对话轮数
+    session_ttl: int = Field(default=1800)               # 会话有效时长（秒，默认 30 分钟）
+    max_sessions: int = Field(default=500)               # 最大内存活跃会话数（LRU淘汰保护）
+    storage_backend: str = Field(default="memory")       # 存储后端："memory" 或 "sqlite"
+    sqlite_path: str = Field(default="data/ayasanko_chat.db") # SQLite 数据库持久化路径
     system_prompt: str = Field(default="你是一位有用的AI")
     nickname: list[str] = Field(default=["猫猫"])
+
+    # 架构与思考链支持
+    stream: bool = Field(default=False)                  # 是否开启 SSE 流式接收
+    show_thinking: bool = Field(default=True)            # 是否展示 DeepSeek / R1 思考过程 (reasoning_content)
+    group_session_mode: str = Field(default="individual") # "individual"(群内单人独立) 或 "shared"(群内全员共享上下文)
+    max_retries: int = Field(default=2)                  # 遇到网络抖动/429/5xx时的最大重试次数
+    retry_delay: float = Field(default=1.5)              # 重试基础延迟时间（秒）
+    rate_limit_requests: int = Field(default=10)         # 速率限制：单用户/会话在周期内的最大请求数（0 表示关闭）
+    rate_limit_period: int = Field(default=60)           # 速率限制：周期窗口（秒）
+    whitelist_groups: list[str] = Field(default_factory=list) # 群白名单（非空时仅白名单群生效）
+    blacklist_groups: list[str] = Field(default_factory=list) # 群黑名单（黑名单内的群不响应）
+    max_response_length: int = Field(default=1200)       # 单条回复最大字数，超出自动安全分段
     # fmt: on
+
     model_config: ClassVar[ConfigDict] = ConfigDict(extra="ignore")
 
-    @field_validator("nickname", mode="before")
     @classmethod
-    def parse_nickname(cls, v: str | list[str] | set[str] | None) -> list[str]:
-        """将环境变量中的 nickname 解析为列表（支持 JSON 数组、普通字符串或集合）"""
+    def _parse_str_or_list(cls, v: str | list[str] | set[str] | None, default: list[str]) -> list[str]:
         if v is None:
-            return ["猫猫"]
-        if isinstance(v, set):
-            return [str(item) for item in v]
-        if isinstance(v, list):
-            return [str(item) for item in v]
+            return default
+        if isinstance(v, (set, list)):
+            return [str(item).strip() for item in v if str(item).strip()]
         v_stripped = v.strip()
         if v_stripped.startswith("[") and v_stripped.endswith("]"):
             try:
                 parsed = cast(list[object], json.loads(v_stripped))
-                return [str(item) for item in parsed]
+                return [str(item).strip() for item in parsed if str(item).strip()]
             except json.JSONDecodeError:
                 pass
-        return [v_stripped]
+        if "," in v_stripped:
+            return [item.strip() for item in v_stripped.split(",") if item.strip()]
+        return [v_stripped] if v_stripped else default
+
+    @field_validator("nickname", mode="before")
+    @classmethod
+    def parse_nickname(cls, v: str | list[str] | set[str] | None) -> list[str]:
+        """将环境变量中的 nickname 解析为列表"""
+        return cls._parse_str_or_list(v, ["猫猫"])
+
+    @field_validator("whitelist_groups", mode="before")
+    @classmethod
+    def parse_whitelist(cls, v: str | list[str] | set[str] | None) -> list[str]:
+        return cls._parse_str_or_list(v, [])
+
+    @field_validator("blacklist_groups", mode="before")
+    @classmethod
+    def parse_blacklist(cls, v: str | list[str] | set[str] | None) -> list[str]:
+        return cls._parse_str_or_list(v, [])
 
     @field_validator("system_prompt", mode="before")
     @classmethod

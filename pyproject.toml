@@ -4,14 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "nonebot-plugin-ayasanko-chat"
-version = "0.1.0"
-description = "NoneBot2 AI-assisted chat plugin supporting OneBot V11 and QQ official adapters"
+version = "0.3.0"
+description = "NoneBot2 high-performance AI chat plugin supporting OneBot V11, QQ official, and Discord adapters"
 authors = ["mgyanik <ymx09025@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/mgyanik/nonebot-plugin-ayasanko-chat"
 repository = "https://github.com/mgyanik/nonebot-plugin-ayasanko-chat"
-keywords = ["nonebot", "nonebot2", "qq", "chat", "llm", "ai"]
+keywords = ["nonebot", "nonebot2", "qq", "discord", "chat", "llm", "ai"]
 
 packages = [
     { include = "nonebot_plugin_ayasanko_chat" }
@@ -24,11 +24,22 @@ pydantic = ">=2.0.0"
 httpx = ">=0.24.0"
 nonebot-adapter-onebot = { version = ">=2.4.0", optional = true }
 nonebot-adapter-qq = { version = ">=1.6.0", optional = true }
+nonebot-adapter-discord = { version = ">=0.1.0", optional = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.4.0"
+pytest-asyncio = ">=0.21.0"
+nonebug = ">=0.3.5"
 
 [tool.poetry.extras]
 onebot = ["nonebot-adapter-onebot"]
 qq = ["nonebot-adapter-qq"]
-all = ["nonebot-adapter-onebot", "nonebot-adapter-qq"]
+discord = ["nonebot-adapter-discord"]
+all = ["nonebot-adapter-onebot", "nonebot-adapter-qq", "nonebot-adapter-discord"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.nonebot]
 plugins = ["nonebot_plugin_ayasanko_chat"]
